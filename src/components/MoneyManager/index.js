@@ -90,7 +90,7 @@ class MoneyManager extends Component {
     if (typeFilter && typeFilter !== 'All') {
       query = `${query}&type=${typeFilter}`
     }
-    axios.get(`http://localhost:8080/api/manager/?${query}`).then(response => {
+    axios.get(`https://money-manager-backend-g5hg.onrender.com/api/manager/?${query}`).then(response => {
       const fetchedData = response.data
       const updatedData = fetchedData.map(eachData => ({
         id: eachData.id,
@@ -104,13 +104,13 @@ class MoneyManager extends Component {
   }
 
   postTransaction = payload => {
-    axios.post('http://localhost:8080/api/manager/', payload).then(() => {
+    axios.post('https://money-manager-backend-g5hg.onrender.com/api/manager/', payload).then(() => {
       this.fetchTransactions()
     })
   }
 
   deleteTransaction = id => {
-    axios.delete(`http://localhost:8080/api/manager/${id}`).then(() => {
+    axios.delete(`https://money-manager-backend-g5hg.onrender.com/api/manager/${id}`).then(() => {
       this.fetchTransactions()
     })
   }
