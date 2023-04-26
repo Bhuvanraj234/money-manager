@@ -1,0 +1,20 @@
+Front end money manager app
+
+Github repositry url : https://github.com/Bhuvanraj234/money-manager-frontend
+
+Netlify url : https://main--creative-kangaroo-78dccb.netlify.app/
+
+last committed hash ID :
+
+
+
+
+
+
+Back end money manager app
+
+Github repositry url : https://github.com/Bhuvanraj234/money-manager-backend
+
+Render url : https://money-manager-backend-g5hg.onrender.com
+
+last committed hash ID :
