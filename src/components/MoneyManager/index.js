@@ -1,9 +1,11 @@
 import {Component} from 'react'
+import {DateRangePicker} from 'react-date-range'
 import axios from 'axios'
+import 'react-date-range/dist/styles.css' // main style file
+import 'react-date-range/dist/theme/default.css' // theme css file
 
 import TransactionItem from '../TransactionItem'
 import MoneyDetails from '../MoneyDetails'
-
 import './index.css'
 
 const transactionTypeOptions = [
@@ -32,25 +34,6 @@ const transactionTypeFilterOptions = [
   },
 ]
 
-const transactionHistoryOptions = [
-  {
-    optionId: '1',
-    displayText: 'Last 1 month',
-  },
-  {
-    optionId: '3',
-    displayText: 'Last 3 months',
-  },
-  {
-    optionId: '6',
-    displayText: 'Last 6 months',
-  },
-  {
-    optionId: '12',
-    displayText: 'Last 12 months',
-  },
-]
-
 class MoneyManager extends Component {
   constructor(props) {
     super(props)
@@ -63,56 +46,60 @@ class MoneyManager extends Component {
     amountInput: '',
     dateInput: '',
     optionId: transactionTypeOptions[0].optionId,
-    dateFilter: transactionHistoryOptions[0].optionId,
     typeFilter: transactionTypeFilterOptions[0].optionId,
+    selectionRange: {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection',
+    },
   }
 
   fetchTransactions = async () => {
-    const {dateFilter, typeFilter} = this.state
-    let query = ''
-    if (dateFilter) {
-      const days = {
-        1: '30',
-        3: '90',
-        6: '180',
-        12: '365',
-      }
-      let fromDate = new Date()
-      fromDate = new Date(
-        fromDate.setDate(fromDate.getDate() - days[dateFilter]),
-      )
-        .toISOString()
-        .slice(0, 10)
-      query = `fromDate=${fromDate}&toDate=${new Date()
-        .toISOString()
-        .slice(0, 10)}`
-    }
+    const {selectionRange, typeFilter} = this.state
+    const fromDate = new Date(selectionRange.startDate)
+      .toISOString()
+      .slice(0, 10)
+    const toDate = new Date(selectionRange.endDate).toISOString().slice(0, 10)
+    let query = `fromDate=${fromDate}&toDate=${toDate}`
     if (typeFilter && typeFilter !== 'All') {
       query = `${query}&type=${typeFilter}`
     }
-    axios.get(`https://money-manager-backend-g5hg.onrender.com/api/manager/?${query}`).then(response => {
-      const fetchedData = response.data
-      const updatedData = fetchedData.map(eachData => ({
-        id: eachData.id,
-        title: eachData.title,
-        amount: eachData.amount,
-        type: eachData.type,
-        date: eachData.date,
-      }))
-      this.setState({transactionsList: updatedData})
-    })
+    axios
+      .get(
+        `https://money-manager-backend-g5hg.onrender.com/api/manager/?${query}`,
+      )
+      .then(response => {
+        const fetchedData = response.data
+        const updatedData = fetchedData.map(eachData => ({
+          id: eachData.id,
+          title: eachData.title,
+          amount: eachData.amount,
+          type: eachData.type,
+          date: eachData.date,
+        }))
+        this.setState({transactionsList: updatedData})
+      })
   }
 
   postTransaction = payload => {
-    axios.post('https://money-manager-backend-g5hg.onrender.com/api/manager/', payload).then(() => {
-      this.fetchTransactions()
-    })
+    axios
+      .post(
+        'https://money-manager-backend-g5hg.onrender.com/api/manager/',
+        payload,
+      )
+      .then(() => {
+        this.fetchTransactions()
+      })
   }
 
   deleteTransaction = id => {
-    axios.delete(`https://money-manager-backend-g5hg.onrender.com/api/manager/${id}`).then(() => {
-      this.fetchTransactions()
-    })
+    axios
+      .delete(
+        `https://money-manager-backend-g5hg.onrender.com/api/manager/${id}`,
+      )
+      .then(() => {
+        this.fetchTransactions()
+      })
   }
 
   onAddTransaction = event => {
@@ -160,15 +147,15 @@ class MoneyManager extends Component {
     this.setState({titleInput: event.target.value})
   }
 
-  onChangeDateFilterInput = event => {
-    this.setState({dateFilter: event.target.value})
+  onChangeTypeFilterInput = event => {
+    this.setState({typeFilter: event.target.value})
     setTimeout(() => {
       this.fetchTransactions()
     }, 100)
   }
 
-  onChangeTypeFilterInput = event => {
-    this.setState({typeFilter: event.target.value})
+  handleSelect = range => {
+    this.setState({selectionRange: range.selection})
     setTimeout(() => {
       this.fetchTransactions()
     }, 100)
@@ -225,8 +212,8 @@ class MoneyManager extends Component {
       dateInput,
       optionId,
       transactionsList,
-      dateFilter,
       typeFilter,
+      selectionRange,
     } = this.state
     const balanceAmount = this.getBalance()
     const incomeAmount = this.getIncome()
@@ -304,21 +291,10 @@ class MoneyManager extends Component {
             </form>
             <div className="history-transactions">
               <h1 className="transaction-header">History</h1>
-              <label className="input-label" htmlFor="select-filter-date">
-                Transaction History
-              </label>
-              <select
-                id="select-filter date"
-                className="input"
-                value={dateFilter}
-                onChange={this.onChangeDateFilterInput}
-              >
-                {transactionHistoryOptions.map(eachOption => (
-                  <option key={eachOption.optionId} value={eachOption.optionId}>
-                    {eachOption.displayText}
-                  </option>
-                ))}
-              </select>
+              <DateRangePicker
+                ranges={[selectionRange]}
+                onChange={this.handleSelect}
+              />
               <label className="input-label" htmlFor="select-filter-type">
                 Transaction Type
               </label>
